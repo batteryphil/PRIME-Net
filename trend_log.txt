@@ -1,0 +1,48 @@
+Starting PRIME Trend Prediction Engine...
+Gen    0 | Train MSE: 1000000.00 | Best Val MSE:       inf | Flips:  2 | Thresh:  10.8 | Eq: INVALID
+Gen   50 | Train MSE: 1000000.00 | Best Val MSE:       inf | Flips:  0 | Thresh:  14.3 | Eq: INVALID
+Gen  100 | Train MSE: 1000000.00 | Best Val MSE:       inf | Flips:  1 | Thresh:  17.6 | Eq: INVALID
+Gen  150 | Train MSE: 1000000.00 | Best Val MSE:       inf | Flips:  2 | Thresh:  18.2 | Eq: INVALID
+Gen  200 | Train MSE: 1000000.00 | Best Val MSE:       inf | Flips:  0 | Thresh:  16.8 | Eq: INVALID
+Gen  250 | Train MSE: 1000000.00 | Best Val MSE:       inf | Flips:  0 | Thresh:  15.9 | Eq: INVALID
+Gen  300 | Train MSE:      7.80 | Best Val MSE:       inf | Flips:  2 | Thresh:  18.6 | Eq: INVALID
+Gen  350 | Train MSE:      7.48 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 152.1 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen  400 | Train MSE:      6.98 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 175.0 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen  450 | Train MSE:      6.93 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 169.1 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen  500 | Train MSE:      7.62 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 164.7 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen  550 | Train MSE:      6.98 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 168.2 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen  600 | Train MSE:      7.70 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 172.0 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen  650 | Train MSE:      7.62 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 153.0 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen  700 | Train MSE:      6.94 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 158.2 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen  750 | Train MSE:      7.48 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 157.7 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen  800 | Train MSE:      7.70 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 163.8 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen  850 | Train MSE:      6.98 | Best Val MSE:     55.10 | Flips:  2 | Thresh: 167.3 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen  900 | Train MSE:      6.94 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 168.6 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen  950 | Train MSE:      7.62 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 159.7 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1000 | Train MSE:      7.11 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 170.5 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1050 | Train MSE:      7.70 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 173.4 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1100 | Train MSE:      6.92 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 154.0 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1150 | Train MSE:      7.70 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 173.7 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1200 | Train MSE:      6.94 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 156.9 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1250 | Train MSE:      7.62 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 169.6 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1300 | Train MSE:      7.70 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 166.0 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1350 | Train MSE:      7.60 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 159.8 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1400 | Train MSE:      7.70 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 156.3 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1450 | Train MSE:      6.94 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 170.3 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1500 | Train MSE:      7.48 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 175.4 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1550 | Train MSE:      6.92 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 158.4 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1600 | Train MSE:      7.70 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 159.1 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1650 | Train MSE:      7.70 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 159.4 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1700 | Train MSE:      6.94 | Best Val MSE:     55.10 | Flips:  2 | Thresh: 168.7 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1750 | Train MSE:      6.94 | Best Val MSE:     55.10 | Flips:  4 | Thresh: 192.7 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1800 | Train MSE:      7.62 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 160.6 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1850 | Train MSE:      6.94 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 169.3 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1900 | Train MSE:      6.94 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 161.5 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 1950 | Train MSE:      7.70 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 165.6 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 2000 | Train MSE:      6.98 | Best Val MSE:     55.10 | Flips:  2 | Thresh: 168.6 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 2050 | Train MSE:      6.98 | Best Val MSE:     55.10 | Flips:  1 | Thresh: 168.7 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 2100 | Train MSE:      7.70 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 155.8 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 2150 | Train MSE:      7.70 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 166.8 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 2200 | Train MSE:      6.98 | Best Val MSE:     55.10 | Flips:  2 | Thresh: 172.5 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 2250 | Train MSE:      7.68 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 163.9 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))
+Gen 2300 | Train MSE:      6.94 | Best Val MSE:     55.10 | Flips:  0 | Thresh: 167.4 | Eq: avg(X[t-1], avg(avg(avg(avg(X[t-1], 0.5), avg(avg(X[t-2], X[t-1]), X[t-1])), X[t-1]), X[t-3]))

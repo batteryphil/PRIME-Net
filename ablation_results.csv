@@ -1,0 +1,61 @@
+dataset,ablation_mode,seed,final_equation,mse
+multiplicative,base,0,(X[t-1] * X[t-2]),0.08510223776102066
+multiplicative,base,1,(X[t-1] * X[t-2]),0.08510223776102066
+multiplicative,base,2,(X[t-2] * X[t-1]),0.08510223776102066
+multiplicative,base,3,(X[t-2] * X[t-1]),0.08510223776102066
+multiplicative,base,4,(X[t-1] * X[t-2]),0.08510223776102066
+multiplicative,no_rprop,0,((log(exp(0.1)) * (X[t-6] * X[t-5])) - (-1.0 * (X[t-2] * (X[t-1] - 0.1)))),0.7426297068595886
+multiplicative,no_rprop,1,((-1.0 * (X[t-2] * ((0.5 / X[t-3]) * X[t-1]))) * -1.0),0.27010223269462585
+multiplicative,no_rprop,2,(-1.0 * (((0.1 / X[t-4]) * (X[t-1] * X[t-2])) * -1.0)),0.27010223269462585
+multiplicative,no_rprop,3,((-1.0 * ((0.1 * 1.0) * (X[t-1] * (X[t-2] * -1.0)))) / 0.1),0.29510223865509033
+multiplicative,no_rprop,4,((-1.0 * -1.0) * (1.0 * (X[t-1] * X[t-2]))),0.21510224044322968
+multiplicative,no_vote,0,(1.0 * abs((X[t-2] * (X[t-1] + (X[t-3] * X[t-1]))))),0.260102242231369
+multiplicative,no_vote,1,"(X[t-1] * (X[t-2] + (((avg(X[t-3], X[t-3]) * 1.0) / X[t-2]) * X[t-1])))",0.3551022410392761
+multiplicative,no_vote,2,((X[t-2] * X[t-1]) * (sin(X[t-5]) / sin(X[t-5]))),0.24510224163532257
+multiplicative,no_vote,3,((X[t-1] * X[t-2]) - (sin((abs(X[t-6]) - sin(X[t-1]))) * 0.1)),0.31391510367393494
+multiplicative,no_vote,4,((X[t-2] * ((X[t-6] + abs(sin(sin(0.1)))) + X[t-1])) - 0.1),0.5660616159439087
+multiplicative,no_random_walk,0,INVALID,1000000.0
+multiplicative,no_random_walk,1,"(log(((1.0 + X[t-5]) * avg(exp(X[t-4]), exp(abs(X[t-2]))))) * X[t-1])",16.2302303314209
+multiplicative,no_random_walk,2,INVALID,1000000.0
+multiplicative,no_random_walk,3,INVALID,1000000.0
+multiplicative,no_random_walk,4,((log(X[t-2]) / X[t-5]) * (X[t-1] * (X[t-3] + abs(abs(X[t-2]))))),0.3251022398471832
+multiplicative,no_complexity,0,(X[t-2] * (((log(-1.0) - X[t-1]) * -1.0) - X[t-6])),0.00010218557872576639
+multiplicative,no_complexity,1,"(avg(X[t-1], X[t-5]) / (0.5 / X[t-2]))",0.00010223591380054131
+multiplicative,no_complexity,2,((X[t-1] - (X[t-2] + X[t-1])) * (X[t-5] - X[t-1])),0.00010223645949736238
+multiplicative,no_complexity,3,(abs(X[t-1]) - ((X[t-1] - (X[t-1] * abs((X[t-2] + X[t-3])))) - X[t-6])),0.00010223704157397151
+multiplicative,no_complexity,4,(X[t-2] * log(exp(log(exp(X[t-1]))))),0.0001022310825646855
+multiplicative,random_search,0,((X[t-1] * ((abs(X[t-2]) * X[t-6]) + 0.5)) * (X[t-2] + X[t-2])),0.3151022493839264
+multiplicative,random_search,1,abs(((X[t-1] + (X[t-4] * log(sin((1.0 + X[t-4]))))) * X[t-2])),0.3101022243499756
+multiplicative,random_search,2,"(X[t-1] * abs((avg(X[t-2], X[t-2]) - (X[t-4] / abs((1.0 * 1.0))))))",0.33510223031044006
+multiplicative,random_search,3,abs((X[t-1] * ((abs(1.0) - abs((abs(abs(X[t-6])) + -1.0))) - X[t-2]))),0.3501022458076477
+multiplicative,random_search,4,(X[t-1] * (X[t-2] * exp(abs((abs(X[t-3]) * exp(exp(X[t-1]))))))),0.3201022446155548
+nonlinear,base,0,((X[t-2] + (X[t-1] + (X[t-1] - X[t-1]))) - (log(X[t-1]) * X[t-1])),0.422492653131485
+nonlinear,base,1,"avg(X[t-1], (X[t-5] + (X[t-2] / 0.5)))",0.5054745078086853
+nonlinear,base,2,(X[t-2] - ((X[t-4] - X[t-1]) * 0.5)),0.49547451734542847
+nonlinear,base,3,(X[t-4] + (X[t-2] + (X[t-5] + sin(sin(X[t-1]))))),0.25323286652565
+nonlinear,base,4,"(X[t-1] - (avg(X[t-6], X[t-1]) - X[t-2]))",0.5204744935035706
+nonlinear,no_rprop,0,((exp(log(0.1)) - (0.1 * X[t-5])) - (0.5 + (X[t-4] - (X[t-2] - 0.1)))),1.106216549873352
+nonlinear,no_rprop,1,"((X[t-2] - avg(X[t-5], ((-1.0 * X[t-3]) - X[t-1]))) - X[t-4])",0.6204745173454285
+nonlinear,no_rprop,2,(-1.0 * (((X[t-6] / X[t-4]) * (X[t-4] - X[t-2])) * 1.0)),0.7897899746894836
+nonlinear,no_rprop,3,"((-1.0 * ((-1.0 * -1.0) * avg(X[t-6], (X[t-1] * -1.0)))) + X[t-2])",0.6454744935035706
+nonlinear,no_rprop,4,((-1.0 / 0.1) * (0.1 * (X[t-5] - X[t-2]))),0.7197899222373962
+nonlinear,no_vote,0,(X[t-2] - sin((X[t-1] * sin(sin(log(sin((1.0 * (exp(X[t-1]) + X[t-1]))))))))),0.6946369409561157
+nonlinear,no_vote,1,"(avg((abs(X[t-1]) / X[t-1]), abs((0.5 * abs(1.0)))) + X[t-2])",0.48093950748443604
+nonlinear,no_vote,2,"(((avg(X[t-5], (X[t-1] - X[t-4])) - X[t-5]) + X[t-2]) * exp(X[t-6]))",0.6554744839668274
+nonlinear,no_vote,3,"(avg(X[t-5], (X[t-1] + X[t-4])) + log((exp(X[t-2]) + X[t-3])))",0.6254737973213196
+nonlinear,no_vote,4,"((log(avg((X[t-1] - exp(1.0)), 1.0)) / log(0.1)) + X[t-2])",0.48446398973464966
+nonlinear,no_random_walk,0,INVALID,1000000.0
+nonlinear,no_random_walk,1,(((X[t-2] * X[t-1]) / (exp(X[t-4]) * X[t-1])) - X[t-4]),0.7847899794578552
+nonlinear,no_random_walk,2,INVALID,1000000.0
+nonlinear,no_random_walk,3,INVALID,1000000.0
+nonlinear,no_random_walk,4,(X[t-2] + ((X[t-3] * exp(X[t-2])) * (X[t-1] + X[t-1]))),0.7847899794578552
+nonlinear,no_complexity,0,((X[t-2] + (X[t-1] + (X[t-1] - X[t-1]))) - (log(X[t-1]) * X[t-1])),0.09249264746904373
+nonlinear,no_complexity,1,"avg(X[t-1], (X[t-5] + (X[t-2] / 0.5)))",0.3154745101928711
+nonlinear,no_complexity,2,"((X[t-2] + X[t-1]) - (avg(X[t-1], X[t-5]) * log(X[t-1])))",0.30290859937667847
+nonlinear,no_complexity,3,(X[t-4] + (X[t-2] + (X[t-5] + sin(sin(X[t-1]))))),0.008232858031988144
+nonlinear,no_complexity,4,"(X[t-1] - (avg(X[t-6], X[t-1]) - X[t-2]))",0.3154745101928711
+nonlinear,random_search,0,(((sin(X[t-1]) + X[t-2]) + (exp(0.1) - 1.0)) / (X[t-1] / X[t-1])),0.3361130356788635
+nonlinear,random_search,1,(sin(sin((X[t-1] - (sin(X[t-5]) / (X[t-5] / sin(X[t-3])))))) + X[t-2]),0.35823285579681396
+nonlinear,random_search,2,"(((avg(sin(sin(X[t-1])), 0.1) - X[t-6]) + X[t-2]) + (X[t-3] - X[t-3]))",0.5128781795501709
+nonlinear,random_search,3,"(sin(X[t-1]) + avg(X[t-5], (X[t-2] / ((X[t-3] / X[t-3]) * avg(1.0, X[t-3])))))",0.3901014029979706
+nonlinear,random_search,4,((X[t-1] / (X[t-6] - (abs(0.5) + (1.0 / (0.1 / -1.0))))) + X[t-2]),0.662777841091156
