@@ -10,9 +10,9 @@ def collect_expert_telemetry():
     print("[*] Training PPO Expert on LunarLanderContinuous-v3...")
     env = gym.make("LunarLanderContinuous-v3")
     
-    # Train for a very short time, just enough to learn to stabilize (50k steps is usually enough for a decent landing)
+    # Train for 500k steps to ensure it becomes a Master Pilot (soft hovering)
     model = PPO("MlpPolicy", env, verbose=0)
-    model.learn(total_timesteps=50000)
+    model.learn(total_timesteps=500000)
     print("[*] Expert Trained.")
     
     # Collect Telemetry
