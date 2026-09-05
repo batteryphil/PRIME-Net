@@ -1,7 +1,18 @@
 import time
 import numpy as np
 import sympy as sp
-from numba import njit
+try:
+    from numba import njit
+    HAS_NUMBA = True
+except ImportError:
+    HAS_NUMBA = False
+    def njit(*args, **kwargs):
+        def decorator(func):
+            return func
+        if len(args) == 1 and callable(args[0]):
+            return args[0]
+        return decorator
+
 from srbench_mud_test import (
     PrimeEngine,
     eval_population_feynman,
@@ -11,67 +22,72 @@ from srbench_mud_test import (
     safe_log,
     safe_sqrt,
     safe_exp,
+    safe_div_vec,
+    safe_log_vec,
+    safe_sqrt_vec,
+    safe_exp_vec,
 )
 
-@njit
-def predict_rpn(rpn, X_data):
+def predict_rpn(rpn, X_data, affine=None):
     """
     Evaluate an RPN token sequence on feature matrix X_data.
+    Vectorized across all samples in X_data simultaneously.
     Returns array of predictions or NaNs for invalid evaluations.
     """
     n_samples = X_data.shape[0]
-    seq_len = len(rpn)
-    stack = np.empty((n_samples, 16), dtype=np.float64)
-    y_pred = np.zeros(n_samples, dtype=np.float64)
+    stack = [None] * 16
+    sp_idx = 0
 
-    for s_idx in range(n_samples):
-        sp_idx = 0
-        valid = True
-        for t_idx in range(seq_len):
-            token = rpn[t_idx]
-            if token == -1:
-                continue
-            elif 0 <= token <= 9:
-                stack[s_idx, sp_idx] = X_data[s_idx, token]
-                sp_idx += 1
-            elif token == 10:
-                stack[s_idx, sp_idx] = 1.0
-                sp_idx += 1
-            elif token == 11:
-                stack[s_idx, sp_idx] = 2.0
-                sp_idx += 1
-            elif token == 12:
-                stack[s_idx, sp_idx] = np.pi
-                sp_idx += 1
-            elif 20 <= token <= 23:
-                if sp_idx < 2:
-                    valid = False
-                    break
-                b = stack[s_idx, sp_idx - 1]
-                a = stack[s_idx, sp_idx - 2]
-                sp_idx -= 1
-                if token == 20:   stack[s_idx, sp_idx - 1] = a + b
-                elif token == 21: stack[s_idx, sp_idx - 1] = a - b
-                elif token == 22: stack[s_idx, sp_idx - 1] = a * b
-                elif token == 23: stack[s_idx, sp_idx - 1] = safe_div(a, b)
-            elif 24 <= token <= 30:
-                if sp_idx < 1:
-                    valid = False
-                    break
-                a = stack[s_idx, sp_idx - 1]
-                if token == 24:   stack[s_idx, sp_idx - 1] = np.sin(a)
-                elif token == 25: stack[s_idx, sp_idx - 1] = np.cos(a)
-                elif token == 26: stack[s_idx, sp_idx - 1] = safe_exp(a)
-                elif token == 27: stack[s_idx, sp_idx - 1] = safe_log(a)
-                elif token == 28: stack[s_idx, sp_idx - 1] = safe_sqrt(a)
-                elif token == 29: stack[s_idx, sp_idx - 1] = a * a
-                elif token == 30: stack[s_idx, sp_idx - 1] = -a
+    ones_vec = np.ones(n_samples, dtype=np.float64)
+    twos_vec = np.full(n_samples, 2.0, dtype=np.float64)
+    pi_vec = np.full(n_samples, np.pi, dtype=np.float64)
 
-        if valid and sp_idx == 1:
-            y_pred[s_idx] = stack[s_idx, 0]
-        else:
-            y_pred[s_idx] = np.nan
-    return y_pred
+    for token in rpn:
+        if token == -1:
+            continue
+        elif 0 <= token <= 9:
+            if sp_idx >= 16: return np.full(n_samples, np.nan)
+            stack[sp_idx] = X_data[:, token]
+            sp_idx += 1
+        elif token == 10:
+            if sp_idx >= 16: return np.full(n_samples, np.nan)
+            stack[sp_idx] = ones_vec
+            sp_idx += 1
+        elif token == 11:
+            if sp_idx >= 16: return np.full(n_samples, np.nan)
+            stack[sp_idx] = twos_vec
+            sp_idx += 1
+        elif token == 12:
+            if sp_idx >= 16: return np.full(n_samples, np.nan)
+            stack[sp_idx] = pi_vec
+            sp_idx += 1
+        elif 20 <= token <= 23:
+            if sp_idx < 2: return np.full(n_samples, np.nan)
+            b = stack[sp_idx - 1]
+            a = stack[sp_idx - 2]
+            sp_idx -= 1
+            if token == 20:   stack[sp_idx - 1] = a + b
+            elif token == 21: stack[sp_idx - 1] = a - b
+            elif token == 22: stack[sp_idx - 1] = a * b
+            elif token == 23: stack[sp_idx - 1] = safe_div_vec(a, b)
+        elif 24 <= token <= 30:
+            if sp_idx < 1: return np.full(n_samples, np.nan)
+            a = stack[sp_idx - 1]
+            if token == 24:   stack[sp_idx - 1] = np.sin(a)
+            elif token == 25: stack[sp_idx - 1] = np.cos(a)
+            elif token == 26: stack[sp_idx - 1] = safe_exp_vec(a)
+            elif token == 27: stack[sp_idx - 1] = safe_log_vec(a)
+            elif token == 28: stack[sp_idx - 1] = safe_sqrt_vec(a)
+            elif token == 29: stack[sp_idx - 1] = a * a
+            elif token == 30: stack[sp_idx - 1] = -a
+
+    if sp_idx == 1 and stack[0] is not None:
+        pred = np.asarray(stack[0], dtype=np.float64)
+        if affine is not None:
+            c1, c0 = affine
+            pred = c1 * pred + c0
+        return pred
+    return np.full(n_samples, np.nan)
 
 
 def _pad_features(X, min_dim=10):
@@ -127,6 +143,7 @@ def run_prime_engine(X_train, y_train, X_test=None, y_test=None, **kwargs):
     macro_seq_len = kwargs.get('macro_seq_len', 15)
     max_generations = kwargs.get('max_generations', 1000)
     timeout_sec = kwargs.get('timeout_sec', 60.0)
+    enable_affine = kwargs.get('enable_affine', True)
 
     X_tr = np.asarray(X_train, dtype=np.float64)
     y_tr = np.asarray(y_train, dtype=np.float64)
@@ -140,14 +157,16 @@ def run_prime_engine(X_train, y_train, X_test=None, y_test=None, **kwargs):
     engine.reset_state(num_vars=num_vars)
 
     best_rpn, best_mse_train, discovery_gen, _ = engine.solve(
-        X_tr_pad, y_tr, eval_population_feynman,
-        max_generations=max_generations, timeout_sec=timeout_sec
+        X_tr_pad, y_tr,
+        max_generations=max_generations, timeout_sec=timeout_sec,
+        enable_affine=enable_affine
     )
 
     if best_rpn is None:
         return {
             "best_sympy": None,
             "best_rpn": [],
+            "affine": (1.0, 0.0),
             "train_r2": -999.0,
             "test_r2": -999.0,
             "train_mse": float("inf"),
@@ -155,8 +174,9 @@ def run_prime_engine(X_train, y_train, X_test=None, y_test=None, **kwargs):
             "discovery_gen": -1,
         }
 
-    predicted_sympy = rpn_to_sympy(best_rpn, num_vars)
-    train_preds = predict_rpn(best_rpn, X_tr_pad)
+    affine = getattr(engine, 'best_affine', (1.0, 0.0))
+    predicted_sympy = rpn_to_sympy(best_rpn, num_vars, affine=affine)
+    train_preds = predict_rpn(best_rpn, X_tr_pad, affine=affine)
     train_r2 = _compute_r2(y_tr, train_preds)
     train_mse = float(np.nanmean((y_tr - train_preds) ** 2))
 
@@ -166,7 +186,7 @@ def run_prime_engine(X_train, y_train, X_test=None, y_test=None, **kwargs):
         if X_te.ndim == 1:
             X_te = X_te.reshape(-1, 1)
         X_te_pad, _ = _pad_features(X_te, 10)
-        test_preds = predict_rpn(best_rpn, X_te_pad)
+        test_preds = predict_rpn(best_rpn, X_te_pad, affine=affine)
         test_r2 = _compute_r2(y_te, test_preds)
         test_mse = float(np.nanmean((y_te - test_preds) ** 2))
     else:
@@ -176,6 +196,7 @@ def run_prime_engine(X_train, y_train, X_test=None, y_test=None, **kwargs):
     return {
         "best_sympy": predicted_sympy,
         "best_rpn": best_rpn.tolist(),
+        "affine": affine,
         "train_r2": train_r2,
         "test_r2": test_r2,
         "train_mse": train_mse,
@@ -188,14 +209,16 @@ class PrimeRegressor:
     """
     Scikit-Learn compatible estimator for PRIME-Net symbolic regression.
     """
-    def __init__(self, pop_size=256, seq_len=63, macro_seq_len=15, max_generations=1000, timeout_sec=60.0):
+    def __init__(self, pop_size=256, seq_len=63, macro_seq_len=15, max_generations=1000, timeout_sec=60.0, enable_affine=True):
         self.pop_size = pop_size
         self.seq_len = seq_len
         self.macro_seq_len = macro_seq_len
         self.max_generations = max_generations
         self.timeout_sec = timeout_sec
+        self.enable_affine = enable_affine
         self.equation_ = None
         self.rpn_ = None
+        self.affine_ = (1.0, 0.0)
         self.r2_score_ = None
         self.mse_ = None
         self.discovery_gen_ = -1
@@ -215,10 +238,12 @@ class PrimeRegressor:
             macro_seq_len=self.macro_seq_len,
             max_generations=self.max_generations,
             timeout_sec=self.timeout_sec,
+            enable_affine=self.enable_affine,
         )
 
         self.equation_ = res["best_sympy"]
         self.rpn_ = np.array(res["best_rpn"], dtype=np.int32) if res["best_rpn"] else None
+        self.affine_ = res.get("affine", (1.0, 0.0))
         self.r2_score_ = res["train_r2"]
         self.mse_ = res["train_mse"]
         self.discovery_gen_ = res["discovery_gen"]
@@ -231,7 +256,7 @@ class PrimeRegressor:
         if X.ndim == 1:
             X = X.reshape(-1, 1)
         X_pad, _ = _pad_features(X, 10)
-        return predict_rpn(self.rpn_, X_pad)
+        return predict_rpn(self.rpn_, X_pad, affine=self.affine_)
 
     def score(self, X, y):
         preds = self.predict(X)

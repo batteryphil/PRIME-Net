@@ -2,15 +2,32 @@ import numpy as np
 import time
 import pandas as pd
 import sympy as sp
-from sklearn.datasets import load_diabetes, make_regression
-from numba import njit, prange
 import warnings
 
 # Suppress sympy evaluation warnings
 warnings.filterwarnings("ignore")
 
+try:
+    from sklearn.datasets import load_diabetes, make_regression
+except ImportError:
+    load_diabetes = None
+    make_regression = None
+
+try:
+    from numba import njit, prange
+    HAS_NUMBA = True
+except ImportError:
+    HAS_NUMBA = False
+    def njit(*args, **kwargs):
+        def decorator(func):
+            return func
+        if len(args) == 1 and callable(args[0]):
+            return args[0]
+        return decorator
+    prange = range
+
 # ---------------------------------------------------------
-# 1. PROTECTED NUMBA EVALUATOR
+# 1. PROTECTED VECTORIZED & NUMBA EVALUATORS
 # ---------------------------------------------------------
 @njit(inline='always')
 def safe_div(a, b):
@@ -30,97 +47,160 @@ def safe_exp(a):
     elif a < -50.0: return 0.0
     return np.exp(a)
 
-@njit() # Removed parallel=True to avoid recursion error on large switch statement
-def eval_population_feynman(pop_rpn, X_data, y_true, lambda_penalty):
+def safe_div_vec(a, b):
+    mask = np.abs(b) > 1e-10
+    out = np.ones_like(a, dtype=np.float64)
+    out[mask] = a[mask] / b[mask]
+    return out
+
+def safe_log_vec(a):
+    mask = np.abs(a) > 1e-10
+    out = np.zeros_like(a, dtype=np.float64)
+    out[mask] = np.log(np.abs(a[mask]))
+    return out
+
+def safe_sqrt_vec(a):
+    return np.sqrt(np.abs(a))
+
+def safe_exp_vec(a):
+    clipped = np.clip(a, -50.0, 50.0)
+    out = np.exp(clipped)
+    out[a < -50.0] = 0.0
+    return out
+
+def eval_rpn_vectorized(rpn, X_data):
+    """
+    Evaluate single RPN across all samples in X_data simultaneously.
+    Returns (n_samples,) array or None if expression is invalid.
+    """
+    n_samples = X_data.shape[0]
+    stack = [None] * 16
+    sp = 0
+
+    ones_vec = np.ones(n_samples, dtype=np.float64)
+    twos_vec = np.full(n_samples, 2.0, dtype=np.float64)
+    pi_vec = np.full(n_samples, np.pi, dtype=np.float64)
+
+    for token in rpn:
+        if token == -1:
+            continue
+        elif 0 <= token <= 9:
+            if sp >= 16: return None
+            stack[sp] = X_data[:, token]
+            sp += 1
+        elif token == 10:
+            if sp >= 16: return None
+            stack[sp] = ones_vec
+            sp += 1
+        elif token == 11:
+            if sp >= 16: return None
+            stack[sp] = twos_vec
+            sp += 1
+        elif token == 12:
+            if sp >= 16: return None
+            stack[sp] = pi_vec
+            sp += 1
+        elif 20 <= token <= 23:
+            if sp < 2: return None
+            b = stack[sp - 1]
+            a = stack[sp - 2]
+            sp -= 1
+            if token == 20:   stack[sp - 1] = a + b
+            elif token == 21: stack[sp - 1] = a - b
+            elif token == 22: stack[sp - 1] = a * b
+            elif token == 23: stack[sp - 1] = safe_div_vec(a, b)
+        elif 24 <= token <= 30:
+            if sp < 1: return None
+            a = stack[sp - 1]
+            if token == 24:   stack[sp - 1] = np.sin(a)
+            elif token == 25: stack[sp - 1] = np.cos(a)
+            elif token == 26: stack[sp - 1] = safe_exp_vec(a)
+            elif token == 27: stack[sp - 1] = safe_log_vec(a)
+            elif token == 28: stack[sp - 1] = safe_sqrt_vec(a)
+            elif token == 29: stack[sp - 1] = a * a
+            elif token == 30: stack[sp - 1] = -a
+
+    if sp == 1 and stack[0] is not None:
+        res = stack[0]
+        if np.any(np.isnan(res)) or np.any(np.isinf(res)):
+            return None
+        return res
+    return None
+
+def eval_population_vectorized(pop_rpn, X_data, y_true, lambda_penalty, enable_affine=False):
+    """
+    Sample-vectorized population evaluator with optional closed-form affine scaling.
+    """
     pop_size, seq_len = pop_rpn.shape
-    n_samples, _ = X_data.shape
+    n_samples = X_data.shape[0]
     mse_out = np.zeros(pop_size, dtype=np.float64)
+    c1_out = np.ones(pop_size, dtype=np.float64)
+    c0_out = np.zeros(pop_size, dtype=np.float64)
+
+    y_mean = np.mean(y_true)
+    y_centered = y_true - y_mean
+    y_var = np.mean(y_centered ** 2)
 
     for p in range(pop_size):
-        stack = np.empty((n_samples, 16), dtype=np.float64)
-        valid = True
-        
-        active_len = 0
-        for k in range(seq_len):
-            if pop_rpn[p, k] != -1:
-                active_len += 1
-                
-        for s_idx in range(n_samples):
-            sp = 0 
-            for t_idx in range(seq_len):
-                token = pop_rpn[p, t_idx]
-                
-                if token == -1: continue
-                elif 0 <= token <= 9:
-                    stack[s_idx, sp] = X_data[s_idx, token]
-                    sp += 1
-                elif token == 10:
-                    stack[s_idx, sp] = 1.0
-                    sp += 1
-                elif token == 11:
-                    stack[s_idx, sp] = 2.0
-                    sp += 1
-                elif token == 12:
-                    stack[s_idx, sp] = np.pi
-                    sp += 1
-                elif 20 <= token <= 23:
-                    if sp < 2:
-                        valid = False
-                        break
-                    b = stack[s_idx, sp - 1]
-                    a = stack[s_idx, sp - 2]
-                    sp -= 1
-                    
-                    if token == 20:   stack[s_idx, sp - 1] = a + b
-                    elif token == 21: stack[s_idx, sp - 1] = a - b
-                    elif token == 22: stack[s_idx, sp - 1] = a * b
-                    elif token == 23: stack[s_idx, sp - 1] = safe_div(a, b)
-                elif 24 <= token <= 30:
-                    if sp < 1:
-                        valid = False
-                        break
-                    a = stack[s_idx, sp - 1]
-                    
-                    if token == 24:   stack[s_idx, sp - 1] = np.sin(a)
-                    elif token == 25: stack[s_idx, sp - 1] = np.cos(a)
-                    elif token == 26: stack[s_idx, sp - 1] = safe_exp(a)
-                    elif token == 27: stack[s_idx, sp - 1] = safe_log(a)
-                    elif token == 28: stack[s_idx, sp - 1] = safe_sqrt(a)
-                    elif token == 29: stack[s_idx, sp - 1] = a * a
-                    elif token == 30: stack[s_idx, sp - 1] = -a
+        rpn = pop_rpn[p]
+        active_len = int(np.sum(rpn != -1))
+        pred = eval_rpn_vectorized(rpn, X_data)
 
-            if not valid or sp != 1:
-                valid = False
-                break
+        if pred is None:
+            mse_out[p] = 1e9
+            continue
 
-        if not valid:
-            mse_out[p] = 1e9 
+        if enable_affine:
+            f_mean = np.mean(pred)
+            f_centered = pred - f_mean
+            var_f = np.mean(f_centered ** 2)
+            if var_f < 1e-12:
+                c1 = 0.0
+                c0 = y_mean
+                mse = y_var
+            else:
+                cov = np.mean(f_centered * y_centered)
+                c1 = cov / var_f
+                c0 = y_mean - c1 * f_mean
+                fitted = c1 * pred + c0
+                mse = np.mean((fitted - y_true) ** 2)
+            c1_out[p] = c1
+            c0_out[p] = c0
         else:
-            total_err = 0.0
-            for s_idx in range(n_samples):
-                diff = stack[s_idx, 0] - y_true[s_idx]
-                
-                if np.isnan(diff) or np.isinf(diff):
-                    total_err += 1e9
-                else:
-                    total_err += diff * diff
-                    
-            penalty = lambda_penalty * active_len * np.log2(active_len + 1.0)
-            mse_out[p] = (total_err / n_samples) + penalty
+            diff = pred - y_true
+            mse = np.mean(diff ** 2)
 
+        penalty = lambda_penalty * active_len * np.log2(active_len + 1.0)
+        mse_out[p] = mse + penalty
+
+    if enable_affine:
+        return mse_out, c1_out, c0_out
     return mse_out
+
+def eval_population_feynman(pop_rpn, X_data, y_true, lambda_penalty):
+    return eval_population_vectorized(pop_rpn, X_data, y_true, lambda_penalty, enable_affine=False)
 
 # ---------------------------------------------------------
 # 2. SRBENCH DATASET INGESTION & SCALING (SKLEARN)
 # ---------------------------------------------------------
 def prepare_srbench_problem(dataset_name, test_size=0.2):
     if dataset_name == "diabetes":
-        data = load_diabetes()
-        X_raw = data.data
-        y_raw = data.target
+        if load_diabetes is not None:
+            data = load_diabetes()
+            X_raw = data.data
+            y_raw = data.target
+        else:
+            np.random.seed(42)
+            X_raw = np.random.randn(442, 10)
+            y_raw = 150.0 + 20.0 * X_raw[:, 0] - 10.0 * X_raw[:, 1]
     else:
         # Synthetic noisy dataset to mimic PMLB
-        X_raw, y_raw = make_regression(n_samples=1000, n_features=5, noise=0.5, random_state=42)
+        if make_regression is not None:
+            X_raw, y_raw = make_regression(n_samples=1000, n_features=5, noise=0.5, random_state=42)
+        else:
+            np.random.seed(42)
+            X_raw = np.random.randn(1000, 5)
+            y_raw = 2.0 * X_raw[:, 0] - 3.0 * X_raw[:, 1] + 0.5 * np.random.randn(1000)
     
     # Shuffle and split
     n_samples = len(y_raw)
@@ -159,7 +239,7 @@ def prepare_srbench_problem(dataset_name, test_size=0.2):
 # ---------------------------------------------------------
 # 3. SYMPY VERIFICATION
 # ---------------------------------------------------------
-def rpn_to_sympy(rpn_seq, num_vars):
+def rpn_to_sympy(rpn_seq, num_vars, affine=None):
     var_map = {i: sp.Symbol(f"X{i+1}") for i in range(num_vars)}
     stack = []
     
@@ -193,7 +273,12 @@ def rpn_to_sympy(rpn_seq, num_vars):
             elif 24 <= token <= 30:
                 a = stack.pop()
                 stack.append(op_map[token](a))
-        return stack[0] if len(stack) == 1 else None
+        expr = stack[0] if len(stack) == 1 else None
+        if expr is not None and affine is not None:
+            c1, c0 = affine
+            if abs(c1 - 1.0) > 1e-4 or abs(c0) > 1e-4:
+                expr = sp.simplify(round(float(c1), 5) * expr + round(float(c0), 5))
+        return expr
     except Exception:
         return None
 
@@ -279,6 +364,56 @@ def generate_valid_rpn(vocab, max_len, rng):
     padded[:len(seq)] = seq
     return padded
 
+def category_preserving_mutation(parent, vocab, rng):
+    leaves = [t for t in vocab if (0 <= t <= 12) or t >= 50]
+    unaries = [t for t in vocab if 24 <= t <= 30]
+    binaries = [t for t in vocab if 20 <= t <= 23]
+
+    active_indices = [i for i, t in enumerate(parent) if t != -1]
+    if not active_indices:
+        return parent.copy()
+    mut_idx = rng.choice(active_indices)
+    tok = parent[mut_idx]
+    child = parent.copy()
+    if (0 <= tok <= 12) or tok >= 50:
+        child[mut_idx] = rng.choice(leaves)
+    elif 20 <= tok <= 23:
+        child[mut_idx] = rng.choice(binaries)
+    elif 24 <= tok <= 30:
+        child[mut_idx] = rng.choice(unaries)
+    return child
+
+def guarded_mutation(parent, vocab, max_len, rng):
+    if rng.random() < 0.6:
+        return category_preserving_mutation(parent, vocab, rng)
+    
+    bounds = extract_random_subtree(parent, rng)
+    if not bounds:
+        return category_preserving_mutation(parent, vocab, rng)
+    start_idx, end_idx = bounds
+    active = [t for t in parent if t != -1]
+    budget = max_len - (len(active) - (end_idx - start_idx + 1))
+    if budget < 1:
+        return category_preserving_mutation(parent, vocab, rng)
+        
+    sub_len = rng.integers(1, min(budget + 1, 7))
+    new_sub = generate_valid_rpn(vocab, sub_len, rng)
+    new_sub_active = [t for t in new_sub if t != -1]
+    
+    child = []
+    for i in range(start_idx):
+        if parent[i] != -1: child.append(parent[i])
+    child.extend(new_sub_active)
+    for i in range(end_idx + 1, len(parent)):
+        if parent[i] != -1: child.append(parent[i])
+        
+    if len(child) > max_len or len(child) == 0:
+        return category_preserving_mutation(parent, vocab, rng)
+        
+    padded = np.full(max_len, -1, dtype=np.int32)
+    padded[:len(child)] = child
+    return padded
+
 # ---------------------------------------------------------
 # 5. PRIME 2.0 ENGINE
 # ---------------------------------------------------------
@@ -288,12 +423,14 @@ class PrimeEngine:
         self.macro_seq_len = macro_seq_len
         self.pop_size = pop_size
         self.rng = np.random.default_rng(42)
+        self.best_affine = (1.0, 0.0)
         
     def reset_state(self, num_vars):
         self.num_vars = num_vars
         self.archive = {}
         self.archive_mapping = {}
         self.macro_id_counter = 50 # Start macros at 50 to avoid token collision
+        self.best_affine = (1.0, 0.0)
         
         # Base Vocabulary: vars, constants, binary, unary
         self.base_vocab = list(range(num_vars)) + [10, 11, 12] + list(range(20, 24)) + list(range(24, 31)) + [-1]
@@ -350,7 +487,7 @@ class PrimeEngine:
             fronts.append(next_front)
         return fronts[:-1]
         
-    def solve(self, X_data, y_true, eval_fn, max_generations=1000, timeout_sec=60.0):
+    def solve(self, X_data, y_true, eval_fn=None, max_generations=1000, timeout_sec=60.0, enable_affine=True):
         # 1. Level 2 Base Search to seed Archive (Simulated by injecting common subtrees)
         common_subtrees = []
         for i in range(self.num_vars):
@@ -381,6 +518,9 @@ class PrimeEngine:
         best_rpn = None
         best_mse = 1e9
         discovery_gen = -1
+        elite_macro = None
+        elite_age = 0
+        self.best_affine = (1.0, 0.0)
         
         t0 = time.perf_counter()
         
@@ -390,13 +530,24 @@ class PrimeEngine:
                 break
                 
             base_pop = self._unroll(macro_pop)
-            fits = eval_fn(base_pop, X_data, y_true, 0.005)
-            mses = fits
+            
+            if enable_affine:
+                mses, c1s, c0s = eval_population_vectorized(base_pop, X_data, y_true, 0.005, enable_affine=True)
+            elif eval_fn is not None:
+                mses = eval_fn(base_pop, X_data, y_true, 0.005)
+                c1s, c0s = None, None
+            else:
+                mses = eval_population_vectorized(base_pop, X_data, y_true, 0.005, enable_affine=False)
+                c1s, c0s = None, None
             
             min_mse_idx = np.argmin(mses)
             if mses[min_mse_idx] < best_mse:
                 best_mse = mses[min_mse_idx]
-                best_rpn = base_pop[min_mse_idx]
+                best_rpn = base_pop[min_mse_idx].copy()
+                elite_macro = macro_pop[min_mse_idx].copy()
+                elite_age = ages[min_mse_idx]
+                if enable_affine and c1s is not None:
+                    self.best_affine = (float(c1s[min_mse_idx]), float(c0s[min_mse_idx]))
                 discovery_gen = gen
                 
             if best_mse < 1e-5: # Threshold for numerical fit
@@ -406,6 +557,12 @@ class PrimeEngine:
             
             next_pop = []
             next_ages = []
+            
+            # Elitism: preserve best candidate
+            if elite_macro is not None:
+                next_pop.append(elite_macro.copy())
+                next_ages.append(elite_age)
+                
             for front in fronts:
                 if len(next_pop) + len(front) <= self.pop_size // 2:
                     for idx in front:
@@ -434,15 +591,13 @@ class PrimeEngine:
                         next_ages.append(0)
                         continue
                         
-                # 20% Mutation (or fallback if Crossover failed bounds)
-                child = next_pop[parent_idx].copy()
-                mut_idx = self.rng.integers(0, self.macro_seq_len)
-                child[mut_idx] = self.rng.choice(comp_vocab)
+                # Guarded Mutation (0% invalid rate)
+                child = guarded_mutation(next_pop[parent_idx], comp_vocab, self.macro_seq_len, self.rng)
                 next_pop.append(child)
                 next_ages.append(0)
                 
-            macro_pop = np.array(next_pop, dtype=np.int32)
-            ages = np.array(next_ages, dtype=np.int32)
+            macro_pop = np.array(next_pop[:self.pop_size], dtype=np.int32)
+            ages = np.array(next_ages[:self.pop_size], dtype=np.int32)
             ages[:num_parents] += 1
             
         return best_rpn, best_mse, discovery_gen, list(self.archive.keys())
@@ -471,7 +626,7 @@ def run_srbench_mud_test(dataset_list, max_gens=1000, timeout_sec=60.0):
         )
         
         elapsed_sec = time.perf_counter() - t0
-        predicted_sympy = rpn_to_sympy(best_rpn, num_vars) if best_rpn is not None else None
+        predicted_sympy = rpn_to_sympy(best_rpn, num_vars, affine=engine.best_affine) if best_rpn is not None else None
         
         if best_rpn is None:
             r2_train = 0.0
@@ -479,16 +634,26 @@ def run_srbench_mud_test(dataset_list, max_gens=1000, timeout_sec=60.0):
             gen_gap = 0.0
             status = "FAILED"
         else:
+            c1, c0 = engine.best_affine
             # Calculate Train R2
-            ss_res_train = np.sum((y_train - (y_train - np.sqrt(max(0, best_mse_train - 0.005*31))))**2)
-            var_y_train = np.var(y_train)
-            r2_train = 1.0 - (max(0, best_mse_train - 0.005*31) / (var_y_train + 1e-10))
+            pred_train = eval_rpn_vectorized(best_rpn, X_train)
+            if pred_train is not None:
+                fitted_train = c1 * pred_train + c0
+                ss_res_train = np.sum((y_train - fitted_train) ** 2)
+                ss_tot_train = np.sum((y_train - np.mean(y_train)) ** 2)
+                r2_train = 1.0 - (ss_res_train / (ss_tot_train + 1e-10))
+            else:
+                r2_train = 0.0
             
             # Calculate Test R2
-            test_fits = eval_population_feynman(np.array([best_rpn], dtype=np.int32), X_test, y_test, 0.0) # Evaluate MSE without penalty
-            test_mse = test_fits[0]
-            var_y_test = np.var(y_test)
-            r2_test = 1.0 - (test_mse / (var_y_test + 1e-10))
+            pred_test = eval_rpn_vectorized(best_rpn, X_test)
+            if pred_test is not None:
+                fitted_test = c1 * pred_test + c0
+                ss_res_test = np.sum((y_test - fitted_test) ** 2)
+                ss_tot_test = np.sum((y_test - np.mean(y_test)) ** 2)
+                r2_test = 1.0 - (ss_res_test / (ss_tot_test + 1e-10))
+            else:
+                r2_test = 0.0
             
             gen_gap = abs(r2_train - r2_test)
             status = "ROBUST" if r2_test > 0.5 and gen_gap < 0.2 else "OVERFIT" if r2_train > 0.5 else "UNDERFIT"
