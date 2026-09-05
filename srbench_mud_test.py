@@ -487,7 +487,7 @@ class PrimeEngine:
             fronts.append(next_front)
         return fronts[:-1]
         
-    def solve(self, X_data, y_true, eval_fn=None, max_generations=1000, timeout_sec=60.0, enable_affine=True):
+    def solve(self, X_data, y_true, eval_fn=None, max_generations=1000, timeout_sec=60.0, enable_affine=True, lambda_penalty=0.005):
         # 1. Level 2 Base Search to seed Archive (Simulated by injecting common subtrees)
         common_subtrees = []
         for i in range(self.num_vars):
@@ -532,12 +532,12 @@ class PrimeEngine:
             base_pop = self._unroll(macro_pop)
             
             if enable_affine:
-                mses, c1s, c0s = eval_population_vectorized(base_pop, X_data, y_true, 0.005, enable_affine=True)
+                mses, c1s, c0s = eval_population_vectorized(base_pop, X_data, y_true, lambda_penalty, enable_affine=True)
             elif eval_fn is not None:
-                mses = eval_fn(base_pop, X_data, y_true, 0.005)
+                mses = eval_fn(base_pop, X_data, y_true, lambda_penalty)
                 c1s, c0s = None, None
             else:
-                mses = eval_population_vectorized(base_pop, X_data, y_true, 0.005, enable_affine=False)
+                mses = eval_population_vectorized(base_pop, X_data, y_true, lambda_penalty, enable_affine=False)
                 c1s, c0s = None, None
             
             min_mse_idx = np.argmin(mses)

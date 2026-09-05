@@ -144,6 +144,7 @@ def run_prime_engine(X_train, y_train, X_test=None, y_test=None, **kwargs):
     max_generations = kwargs.get('max_generations', 1000)
     timeout_sec = kwargs.get('timeout_sec', 60.0)
     enable_affine = kwargs.get('enable_affine', True)
+    lambda_penalty = kwargs.get('lambda_penalty', 0.005)
 
     X_tr = np.asarray(X_train, dtype=np.float64)
     y_tr = np.asarray(y_train, dtype=np.float64)
@@ -159,7 +160,8 @@ def run_prime_engine(X_train, y_train, X_test=None, y_test=None, **kwargs):
     best_rpn, best_mse_train, discovery_gen, _ = engine.solve(
         X_tr_pad, y_tr,
         max_generations=max_generations, timeout_sec=timeout_sec,
-        enable_affine=enable_affine
+        enable_affine=enable_affine,
+        lambda_penalty=lambda_penalty
     )
 
     if best_rpn is None:
