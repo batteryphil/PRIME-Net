@@ -421,11 +421,12 @@ def guarded_mutation(parent, vocab, max_len, rng):
 # 5. PRIME 2.0 ENGINE
 # ---------------------------------------------------------
 class PrimeEngine:
-    def __init__(self, seq_len=31, macro_seq_len=11, pop_size=256):
+    def __init__(self, seq_len=31, macro_seq_len=11, pop_size=256, seed=42):
         self.seq_len = seq_len
         self.macro_seq_len = macro_seq_len
         self.pop_size = pop_size
-        self.rng = np.random.default_rng(42)
+        self.seed = seed
+        self.rng = np.random.default_rng(seed)
         self.best_affine = (1.0, 0.0)
         
     def reset_state(self, num_vars):

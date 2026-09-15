@@ -168,6 +168,7 @@ def run_prime_engine(X_train, y_train, X_test=None, y_test=None, **kwargs):
     timeout_sec = kwargs.get('timeout_sec', 60.0)
     enable_affine = kwargs.get('enable_affine', True)
     lambda_penalty = kwargs.get('lambda_penalty', 0.005)
+    seed = kwargs.get('seed', kwargs.get('random_state', 42))
 
     X_tr = np.asarray(X_train, dtype=np.float64)
     y_tr = np.asarray(y_train, dtype=np.float64)
@@ -185,7 +186,7 @@ def run_prime_engine(X_train, y_train, X_test=None, y_test=None, **kwargs):
     num_vars = min(X_tr.shape[1], 10)
     X_tr_pad, _ = _pad_features(X_tr, 10)
 
-    engine = PrimeEngine(seq_len=seq_len, macro_seq_len=macro_seq_len, pop_size=pop_size)
+    engine = PrimeEngine(seq_len=seq_len, macro_seq_len=macro_seq_len, pop_size=pop_size, seed=seed)
     engine.reset_state(num_vars=num_vars)
 
     best_rpn, best_mse_train, discovery_gen, _ = engine.solve(
@@ -251,6 +252,7 @@ class PrimeRegressor(BaseEstimator, RegressorMixin):
         timeout_sec=60.0,
         enable_affine=True,
         lambda_penalty=0.005,
+        random_state=42,
     ):
         self.pop_size = pop_size
         self.seq_len = seq_len
@@ -259,6 +261,7 @@ class PrimeRegressor(BaseEstimator, RegressorMixin):
         self.timeout_sec = timeout_sec
         self.enable_affine = enable_affine
         self.lambda_penalty = lambda_penalty
+        self.random_state = random_state
 
     def fit(self, X, y):
         X = np.asarray(X, dtype=np.float64)
@@ -277,6 +280,7 @@ class PrimeRegressor(BaseEstimator, RegressorMixin):
             timeout_sec=self.timeout_sec,
             enable_affine=self.enable_affine,
             lambda_penalty=self.lambda_penalty,
+            seed=self.random_state,
         )
 
         self.equation_ = res["best_sympy"]

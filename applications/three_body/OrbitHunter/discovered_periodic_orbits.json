@@ -1,0 +1,117 @@
+{
+  "summary": {
+    "total_candidates": 34,
+    "total_converged": 8,
+    "novel_discoveries_count": 2,
+    "known_confirmations_count": 6,
+    "duration_seconds": 1123.7129306793213
+  },
+  "novel_discoveries": [
+    {
+      "v1": 0.33919783786671764,
+      "v2": 0.5362798245642026,
+      "T": 6.2899062586312295,
+      "m3": 1.0,
+      "defect": 0.00010978783802310558,
+      "dE": 3.510789435743266e-10,
+      "min_dist": 0.6581471527835316,
+      "success": false,
+      "classification": "NEW EQUAL-MASS PERIODIC FAMILY (dist=0.1301 from Moth II (Class II.D))",
+      "is_novel": true,
+      "novelty_type": "new_equal_mass"
+    },
+    {
+      "v1": 0.5732424780751507,
+      "v2": 0.25161778564692877,
+      "T": 9.67955956535948,
+      "m3": 1.2,
+      "defect": 4.4768480264681284e-05,
+      "dE": 1.9599445160543738e-08,
+      "min_dist": 0.005229365600559209,
+      "success": false,
+      "classification": "NEW UNEQUAL-MASS FAMILY (m3 = 1.20)",
+      "is_novel": true,
+      "novelty_type": "unequal_mass"
+    }
+  ],
+  "known_confirmations": [
+    {
+      "v1": 0.30660420528511934,
+      "v2": 0.1252169381167446,
+      "T": 6.231479698245707,
+      "m3": 1.0,
+      "defect": 2.8568407108366856e-05,
+      "dE": 3.701500938307951e-09,
+      "min_dist": 0.010994222091289757,
+      "success": true,
+      "classification": "Known Family: Butterfly I (Class II.A) (dist=0.0004, T_ratio=1.00)",
+      "is_novel": false,
+      "novelty_type": "known_equal_mass"
+    },
+    {
+      "v1": 0.3066066878893917,
+      "v2": 0.12522637400438874,
+      "T": 6.231513366605894,
+      "m3": 1.0,
+      "defect": 2.7634107002292216e-05,
+      "dE": 3.815591896478197e-09,
+      "min_dist": 0.010994556458274272,
+      "success": true,
+      "classification": "Known Family: Butterfly I (Class II.A) (dist=0.0004, T_ratio=1.00)",
+      "is_novel": false,
+      "novelty_type": "known_equal_mass"
+    },
+    {
+      "v1": 0.08103576697505807,
+      "v2": 0.5887889316038808,
+      "T": 21.27355016746925,
+      "m3": 1.0,
+      "defect": 9.135821201386981e-06,
+      "dE": 1.3446480629208035e-08,
+      "min_dist": 0.007481225370158959,
+      "success": false,
+      "classification": "Known Family: Dragonfly (Class II.E) (dist=0.0005, T_ratio=1.00)",
+      "is_novel": false,
+      "novelty_type": "known_equal_mass"
+    },
+    {
+      "v1": 0.30662073074793617,
+      "v2": 0.12521290123439574,
+      "T": 6.231583542996155,
+      "m3": 1.0,
+      "defect": 2.4322793802690284e-06,
+      "dE": 3.978347962736115e-09,
+      "min_dist": 0.010993186139506662,
+      "success": true,
+      "classification": "Known Family: Butterfly I (Class II.A) (dist=0.0004, T_ratio=1.00)",
+      "is_novel": false,
+      "novelty_type": "known_equal_mass"
+    },
+    {
+      "v1": 0.3066189430426418,
+      "v2": 0.125213936364912,
+      "T": 6.231575567116847,
+      "m3": 1.0,
+      "defect": 5.17481787111996e-06,
+      "dE": 3.737516095810415e-09,
+      "min_dist": 0.010993327522170346,
+      "success": true,
+      "classification": "Known Family: Butterfly I (Class II.A) (dist=0.0004, T_ratio=1.00)",
+      "is_novel": false,
+      "novelty_type": "known_equal_mass"
+    },
+    {
+      "v1": 0.30666982811822624,
+      "v2": 0.12521156736419298,
+      "T": 6.231974862124467,
+      "m3": 1.0,
+      "defect": 6.908908440123061e-05,
+      "dE": 5.257580272047821e-09,
+      "min_dist": 0.010995224510838626,
+      "success": true,
+      "classification": "Known Family: Butterfly I (Class II.A) (dist=0.0004, T_ratio=1.00)",
+      "is_novel": false,
+      "novelty_type": "known_equal_mass"
+    }
+  ]
+}
