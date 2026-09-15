@@ -1,0 +1,177 @@
+{
+  "summary": {
+    "total_identities": 7,
+    "novel_identities_count": 4,
+    "known_confirmations_count": 3,
+    "duration_seconds": 46.799230098724365
+  },
+  "discoveries": [
+    {
+      "a_poly": [
+        2,
+        4
+      ],
+      "b_poly": [
+        0,
+        2
+      ],
+      "b_power": 2,
+      "b_sign": 1,
+      "relation": "8 / (1 * pi)",
+      "target": "pi",
+      "p": 8,
+      "q": 1,
+      "mode": 2,
+      "error_20": 3.508141665536151e-16,
+      "error_60": 8.420277942674453e-47,
+      "error_100": 0.0,
+      "convergent_50_digits": "2.5464790894703253723021402139602297925513543318473",
+      "is_novel": true,
+      "classification": "GENUINELY NEW PCF IDENTITY FOR PI [8 / (1 * pi)]"
+    },
+    {
+      "a_poly": [
+        3,
+        1
+      ],
+      "b_poly": [
+        0,
+        1
+      ],
+      "b_power": 1,
+      "b_sign": -1,
+      "relation": "(1/1) * e",
+      "target": "e",
+      "p": 1,
+      "q": 1,
+      "mode": 1,
+      "error_20": 2.005189687090631e-24,
+      "error_60": 0.0,
+      "error_100": 0.0,
+      "convergent_50_digits": "2.7182818284590452353602874713526624977572470937",
+      "is_novel": true,
+      "classification": "GENUINELY NEW PCF IDENTITY FOR E [(1/1) * e]"
+    },
+    {
+      "a_poly": [
+        1,
+        0
+      ],
+      "b_poly": [
+        1,
+        0
+      ],
+      "b_power": 1,
+      "b_sign": 1,
+      "relation": "(1/1) * phi",
+      "target": "phi",
+      "p": 1,
+      "q": 1,
+      "mode": 1,
+      "error_20": 3.732536909231446e-09,
+      "error_60": 7.128413625762931e-26,
+      "error_100": 1.3613872288888945e-42,
+      "convergent_50_digits": "1.6180339887498948482045868343656381177203078184185",
+      "is_novel": true,
+      "classification": "GENUINELY NEW PCF IDENTITY FOR PHI [(1/1) * phi]"
+    },
+    {
+      "a_poly": [
+        3,
+        0
+      ],
+      "b_poly": [
+        1,
+        0
+      ],
+      "b_power": 1,
+      "b_sign": -1,
+      "relation": "(1/1) * phi^2",
+      "target": "phi",
+      "p": 1,
+      "q": 1,
+      "mode": 3,
+      "error_20": 6.230504602486989e-18,
+      "error_60": 0.0,
+      "error_100": 0.0,
+      "convergent_50_digits": "2.6180339887498948482045868343656381177203091798058",
+      "is_novel": true,
+      "classification": "GENUINELY NEW PCF IDENTITY FOR PHI [(1/1) * phi^2]"
+    }
+  ],
+  "known_confirmations": [
+    {
+      "a_poly": [
+        1,
+        5,
+        9,
+        6
+      ],
+      "b_poly": [
+        0,
+        1
+      ],
+      "b_power": 6,
+      "b_sign": -1,
+      "relation": "8 / (7 * zeta(3))",
+      "target": "zeta(3)",
+      "p": 8,
+      "q": 7,
+      "mode": 2,
+      "error_20": 1.6419023995156295e-32,
+      "error_60": 1.3363823550460978e-51,
+      "error_100": 1.3363823550460978e-51,
+      "convergent_50_digits": "0.95075128294937996420928717579603512504806445455283",
+      "is_novel": false,
+      "classification": "Known Formula: Ramanujan Machine (Nature 2021) (2021) for 8 / (7 * zeta(3))"
+    },
+    {
+      "a_poly": [
+        5,
+        27,
+        51,
+        34
+      ],
+      "b_poly": [
+        0,
+        1
+      ],
+      "b_power": 6,
+      "b_sign": -1,
+      "relation": "6 / (1 * zeta(3))",
+      "target": "zeta(3)",
+      "p": 6,
+      "q": 1,
+      "mode": 2,
+      "error_20": 2.1382117680737565e-50,
+      "error_60": 1.0691058840368783e-50,
+      "error_100": 0.0,
+      "convergent_50_digits": "4.9914442354842448120987576729291844065023383864024",
+      "is_novel": false,
+      "classification": "Known Formula: Roger Ap\u00e9ry (1979) for 6 / (1 * zeta(3))"
+    },
+    {
+      "a_poly": [
+        1,
+        2
+      ],
+      "b_poly": [
+        0,
+        1
+      ],
+      "b_power": 2,
+      "b_sign": 1,
+      "relation": "4 / (1 * pi)",
+      "target": "pi",
+      "p": 4,
+      "q": 1,
+      "mode": 2,
+      "error_20": 1.7540708327680756e-16,
+      "error_60": 4.2101389713372266e-47,
+      "error_100": 0.0,
+      "convergent_50_digits": "1.2732395447351626861510701069801148962756771659237",
+      "is_novel": false,
+      "classification": "Known Formula: Moritz Stern (1833) for 4 / (1 * pi)"
+    }
+  ]
+}
