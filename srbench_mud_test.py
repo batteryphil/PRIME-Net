@@ -170,8 +170,11 @@ def eval_population_vectorized(pop_rpn, X_data, y_true, lambda_penalty, enable_a
             diff = pred - y_true
             mse = np.mean(diff ** 2)
 
-        penalty = lambda_penalty * active_len * np.log2(active_len + 1.0)
-        mse_out[p] = mse + penalty
+        if np.isnan(mse) or np.isinf(mse) or np.isnan(c1_out[p]) or np.isinf(c1_out[p]):
+            mse_out[p] = 1e9
+        else:
+            penalty = lambda_penalty * active_len * np.log2(active_len + 1.0)
+            mse_out[p] = mse + penalty
 
     if enable_affine:
         return mse_out, c1_out, c0_out
@@ -426,6 +429,14 @@ class PrimeEngine:
         self.best_affine = (1.0, 0.0)
         
     def reset_state(self, num_vars):
+        if num_vars > 10:
+            warnings.warn(
+                f"PRIME-Net supports up to 10 variable tokens (X1..X10), but got {num_vars}. "
+                "Variables beyond index 9 will not be accessible in the symbolic search space.",
+                UserWarning,
+                stacklevel=2
+            )
+            num_vars = 10
         self.num_vars = num_vars
         self.archive = {}
         self.archive_mapping = {}
@@ -449,10 +460,7 @@ class PrimeEngine:
                     raw_seq = self.archive_mapping[token]
                     slen = len(raw_seq)
                     if target_idx + slen > self.seq_len:
-                        rem = self.seq_len - target_idx
-                        if rem > 0:
-                            base_pop[i, target_idx:] = raw_seq[:rem]
-                            target_idx += rem
+                        # Cannot fit complete macro subtree; do not slice to avoid malformed RPN syntax
                         break
                     else:
                         base_pop[i, target_idx:target_idx+slen] = raw_seq

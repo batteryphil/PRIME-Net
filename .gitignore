@@ -1,7 +1,15 @@
 venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .pytest_cache/
 *.log
 .DS_Store
 push_to_github.sh
+build/
+dist/
+*.egg-info/
+.coverage
+.cache
+

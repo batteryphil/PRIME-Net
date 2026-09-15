@@ -1,11 +1,34 @@
 import time
+import warnings
 import numpy as np
 import sympy as sp
+
+try:
+    from sklearn.base import BaseEstimator, RegressorMixin
+except ImportError:
+    class BaseEstimator:
+        def get_params(self, deep=True):
+            return {
+                "pop_size": getattr(self, "pop_size", 256),
+                "seq_len": getattr(self, "seq_len", 63),
+                "macro_seq_len": getattr(self, "macro_seq_len", 15),
+                "max_generations": getattr(self, "max_generations", 1000),
+                "timeout_sec": getattr(self, "timeout_sec", 60.0),
+                "enable_affine": getattr(self, "enable_affine", True),
+                "lambda_penalty": getattr(self, "lambda_penalty", 0.005),
+            }
+        def set_params(self, **params):
+            for k, v in params.items():
+                setattr(self, k, v)
+            return self
+
+    class RegressorMixin:
+        _estimator_type = "regressor"
+
 try:
     from numba import njit
     HAS_NUMBA = True
 except ImportError:
-    HAS_NUMBA = False
     def njit(*args, **kwargs):
         def decorator(func):
             return func
@@ -151,6 +174,14 @@ def run_prime_engine(X_train, y_train, X_test=None, y_test=None, **kwargs):
     if X_tr.ndim == 1:
         X_tr = X_tr.reshape(-1, 1)
 
+    if X_tr.shape[1] > 10:
+        warnings.warn(
+            f"PRIME-Net supports up to 10 variable tokens (X1..X10), but got {X_tr.shape[1]}. "
+            "Variables beyond index 9 will not be accessible in the symbolic search space.",
+            UserWarning,
+            stacklevel=2
+        )
+
     num_vars = min(X_tr.shape[1], 10)
     X_tr_pad, _ = _pad_features(X_tr, 10)
 
@@ -207,30 +238,34 @@ def run_prime_engine(X_train, y_train, X_test=None, y_test=None, **kwargs):
     }
 
 
-class PrimeRegressor:
+class PrimeRegressor(BaseEstimator, RegressorMixin):
     """
     Scikit-Learn compatible estimator for PRIME-Net symbolic regression.
     """
-    def __init__(self, pop_size=256, seq_len=63, macro_seq_len=15, max_generations=1000, timeout_sec=60.0, enable_affine=True):
+    def __init__(
+        self,
+        pop_size=256,
+        seq_len=63,
+        macro_seq_len=15,
+        max_generations=1000,
+        timeout_sec=60.0,
+        enable_affine=True,
+        lambda_penalty=0.005,
+    ):
         self.pop_size = pop_size
         self.seq_len = seq_len
         self.macro_seq_len = macro_seq_len
         self.max_generations = max_generations
         self.timeout_sec = timeout_sec
         self.enable_affine = enable_affine
-        self.equation_ = None
-        self.rpn_ = None
-        self.affine_ = (1.0, 0.0)
-        self.r2_score_ = None
-        self.mse_ = None
-        self.discovery_gen_ = -1
-        self.num_vars_ = None
+        self.lambda_penalty = lambda_penalty
 
     def fit(self, X, y):
         X = np.asarray(X, dtype=np.float64)
         y = np.asarray(y, dtype=np.float64)
         if X.ndim == 1:
             X = X.reshape(-1, 1)
+        self.n_features_in_ = X.shape[1]
         self.num_vars_ = min(X.shape[1], 10)
 
         res = run_prime_engine(
@@ -241,6 +276,7 @@ class PrimeRegressor:
             max_generations=self.max_generations,
             timeout_sec=self.timeout_sec,
             enable_affine=self.enable_affine,
+            lambda_penalty=self.lambda_penalty,
         )
 
         self.equation_ = res["best_sympy"]
@@ -252,7 +288,7 @@ class PrimeRegressor:
         return self
 
     def predict(self, X):
-        if self.rpn_ is None or len(self.rpn_) == 0:
+        if not hasattr(self, "rpn_") or self.rpn_ is None or len(self.rpn_) == 0:
             raise RuntimeError("Model has not been fitted or did not find a valid equation.")
         X = np.asarray(X, dtype=np.float64)
         if X.ndim == 1:
